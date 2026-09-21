@@ -38,13 +38,13 @@ import { searchPapers, type Paper } from "@/lib/search.functions";
 export const Route = createFileRoute("/search")({
   head: () => ({
     meta: [
-      { title: "Search & Discovery — Orbis Research" },
+      { title: "Search & Discovery — Infinity Research" },
       {
         name: "description",
         content:
           "Search OpenAlex, Crossref, Semantic Scholar and PubMed by keyword, DOI, patent or dataset, with year, indexing and citation filters.",
       },
-      { property: "og:title", content: "Search & Discovery — Orbis Research" },
+      { property: "og:title", content: "Search & Discovery — Infinity Research" },
       {
         property: "og:description",
         content: "One search bar across free academic APIs, with filters, launchers and rich paper cards.",
@@ -408,7 +408,7 @@ function SearchDiscovery() {
         <section aria-label="Analyze a document" className="mt-8 rounded-3xl border border-border bg-card p-4 sm:p-6">
           <p className="font-display text-sm font-semibold">Analyze a paper</p>
           <p className="mt-1 text-[11px] text-muted-foreground">
-            Drop a PDF, Word file, image, or video — or paste a link — and Orbis will summarize it.
+            Drop a PDF, Word file, image, or video — or paste a link — and Infinity will summarize it.
           </p>
           <div className="mt-4">
             <FileDropPanel />
@@ -443,7 +443,7 @@ function SearchDiscovery() {
           </div>
           <p className="mt-3 truncate rounded-full bg-muted px-4 py-2 text-[11px] text-muted-foreground">{viewerUrl}</p>
           <p className="mt-2 text-[11px] text-muted-foreground">
-            These sites block embedding, so Orbis opens them in a dedicated tab with your query pre-filled.
+            These sites block embedding, so Infinity opens them in a dedicated tab with your query pre-filled.
           </p>
         </section>
 

@@ -42,13 +42,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/analysis")({
   head: () => ({
     meta: [
-      { title: "Data & Coding — Orbis Analysis Workspace" },
+      { title: "Data & Coding — Infinity Analysis Workspace" },
       {
         name: "description",
         content:
           "Upload CSV, Excel and PDF data, clean it, run Python statistics in the browser, and generate charts with AI narratives.",
       },
-      { property: "og:title", content: "Data & Coding — Orbis Analysis Workspace" },
+      { property: "og:title", content: "Data & Coding — Infinity Analysis Workspace" },
       {
         property: "og:description",
         content: "Python statistics sandbox, dataset cleaning, auto-charts and AI statistical narratives.",
@@ -305,7 +305,7 @@ function AnalysisWorkspace() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
           <Button asChild variant="ghost" size="sm" className="h-9 rounded-full px-3 text-xs">
             <Link to="/">
-              <ArrowLeft className="mr-1 size-4" /> Orbis
+              <ArrowLeft className="mr-1 size-4" /> Infinity
             </Link>
           </Button>
           <div className="min-w-0">
@@ -436,7 +436,7 @@ function AnalysisWorkspace() {
                   <Table2 className="size-3.5" /> Web table scraper
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Paste a journal or statistics page and Orbis pulls every HTML table into a dataset.
+                  Paste a journal or statistics page and Infinity pulls every HTML table into a dataset.
                 </p>
                 <div className="mt-3 flex gap-2">
                   <input

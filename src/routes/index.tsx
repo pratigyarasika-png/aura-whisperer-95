@@ -49,12 +49,12 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Orbis — AI Academic Research Workspace" },
+      { title: "Infinity — AI Academic Research Workspace" },
       {
         name: "description",
-        content: "Explore literature, synthesize papers, and organize academic research in Orbis.",
+        content: "Explore literature, synthesize papers, and organize academic research in Infinity.",
       },
-      { property: "og:title", content: "Orbis — AI Academic Research Workspace" },
+      { property: "og:title", content: "Infinity — AI Academic Research Workspace" },
       {
         property: "og:description",
         content: "A focused AI workspace for literature discovery, synthesis, and citations.",
@@ -156,10 +156,50 @@ const hubActions: Array<{
   { label: "Find papers", helper: "Search literature", icon: Search, position: "hub-action-top", to: "/search", withQuery: true },
   { label: "Map concepts", helper: "Connect findings", icon: Network, position: "hub-action-right", to: "/analyze" },
   { label: "Cite sources", helper: "Build references", icon: Quote, position: "hub-action-bottom", to: "/write" },
-  { label: "Analyze PDF", helper: "Ask documents", icon: FileText, position: "hub-action-left" },
-  { label: "Data Suite", helper: "Code & statistics", icon: Code2, position: "hub-action-nw", to: "/analysis" },
+  { label: "Analyze PDF", helper: "Ask documents", icon: FileText, position: "hub-action-left", to: "/search" },
+  { label: "Data Suite", helper: "Code & statistics", icon: Code2, position: "hub-action-sw", to: "/analysis" },
 ];
 
+
+type FeatureTo = "/search" | "/write" | "/analyze" | "/analysis" | "/converter";
+
+const featureGroups: Array<{
+  category: string;
+  items: Array<{ label: string; helper: string; icon: typeof Search; to?: FeatureTo; action?: "scanner" }>;
+}> = [
+  {
+    category: "Research",
+    items: [
+      { label: "Literature search", helper: "Find papers fast", icon: Search, to: "/search" },
+      { label: "Concept mapping", helper: "Connect findings", icon: Network, to: "/analyze" },
+      { label: "Document Q&A", helper: "Ask PDFs & files", icon: FileText, to: "/search" },
+    ],
+  },
+  {
+    category: "Writing",
+    items: [
+      { label: "Manuscript editor", helper: "Draft with AI", icon: PenTool, to: "/write" },
+      { label: "Citation builder", helper: "APA, MLA, IEEE", icon: Quote, to: "/write" },
+      { label: "Poster builder", helper: "Conference posters", icon: LayoutTemplate, to: "/write" },
+    ],
+  },
+  {
+    category: "Data",
+    items: [
+      { label: "Code & statistics", helper: "Python in browser", icon: Code2, to: "/analysis" },
+      { label: "Statistics suite", helper: "Tests & models", icon: BarChart2, to: "/analyze" },
+      { label: "Chart figures", helper: "Publication-ready plots", icon: LineChart, to: "/analyze" },
+    ],
+  },
+  {
+    category: "AI Tools",
+    items: [
+      { label: "Equation scanner", helper: "Solve from a photo", icon: Sigma, action: "scanner" },
+      { label: "Image generator", helper: "Figures & diagrams", icon: ImagePlus, to: "/write" },
+      { label: "Export & sync", helper: "Docs, slides, cloud", icon: Cloud, to: "/converter" },
+    ],
+  },
+];
 
 
 
@@ -176,11 +216,12 @@ function ResearchWorkspace() {
   const [draftAccent, setDraftAccent] = useState(DEFAULT_ACCENT);
   const [query, setQuery] = useState("");
   const [statusIndex, setStatusIndex] = useState(0);
-  const [askMode, setAskMode] = useState<AskMode>("academic");
+  const [askMode, setAskMode] = useState<AskMode>("general");
   const [answer, setAnswer] = useState("");
   const [answering, setAnswering] = useState(false);
   const [answerError, setAnswerError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("orbis-theme");
@@ -275,7 +316,7 @@ function ResearchWorkspace() {
             </div>
             {sidebarOpen && (
               <div className="min-w-0">
-                <p className="font-display truncate text-lg font-semibold">Orbis</p>
+                <p className="font-display truncate text-lg font-semibold">Infinity</p>
                 <p className="truncate text-xs text-muted-foreground">Research intelligence</p>
               </div>
             )}
@@ -311,7 +352,7 @@ function ResearchWorkspace() {
 
           <nav aria-label="Research navigation" className="mt-7 space-y-7">
             <NavGroup title="Workspace" open={sidebarOpen}>
-              <NavItem icon={LayoutDashboard} label="Home / Orbit Canvas" open={sidebarOpen} active to="/" />
+              <NavItem icon={LayoutDashboard} label="Home / Infinity Canvas" open={sidebarOpen} active to="/" />
               <NavItem icon={BookMarked} label="Saved papers" open={sidebarOpen} />
               <NavItem icon={FolderKanban} label="Projects" open={sidebarOpen} />
               <NavItem icon={Search} label="Search & discovery" open={sidebarOpen} to="/search" />
@@ -404,7 +445,7 @@ function ResearchWorkspace() {
                   <div className="engine-panel absolute right-0 top-12 w-[min(22rem,calc(100vw-2rem))] rounded-lg border border-border bg-popover p-2 text-popover-foreground shadow-xl">
                     <div className="px-3 pb-2 pt-1">
                       <p className="font-display text-sm font-semibold">AI engine control</p>
-                      <p className="text-[11px] text-muted-foreground">Choose how Orbis approaches this session</p>
+                      <p className="text-[11px] text-muted-foreground">Choose how Infinity approaches this session</p>
                     </div>
                     <div className="space-y-1" role="listbox" aria-label="AI engine mode">
                       {engineModes.map((mode) => {
@@ -539,10 +580,10 @@ function ResearchWorkspace() {
         <main className="workspace-grid min-h-[calc(100vh-7.5rem)] overflow-hidden px-4 py-8 sm:px-8 sm:py-10 lg:px-12">
           <section className="mx-auto flex w-full max-w-6xl flex-col items-center">
             <div className="mb-7 text-center sm:mb-10">
-              <p className="mb-3 text-xs font-semibold uppercase text-primary-ink">AI research orbit</p>
+              <p className="mb-3 text-xs font-semibold uppercase text-primary-ink">Infinity AI workspace</p>
               <h2 className="font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">What are you investigating?</h2>
               <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
-                Start with a question, paper, or concept. Orbis will trace the evidence around it.
+                Start with a question, paper, or concept. Infinity will trace the evidence around it.
               </p>
             </div>
 
@@ -607,7 +648,7 @@ function ResearchWorkspace() {
                   else void runGeneralAsk(prompt);
                 }}>
                 <span className="mb-2 grid size-10 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg sm:mb-4 sm:size-12"><WandSparkles className="size-4 sm:size-5" /></span>
-                <label htmlFor="research-query" className="font-display text-sm font-semibold sm:text-lg">Ask Orbis</label>
+                <label htmlFor="research-query" className="font-display text-sm font-semibold sm:text-lg">Ask Infinity</label>
                 <textarea
                   id="research-query"
                   value={query}
@@ -642,8 +683,21 @@ function ResearchWorkspace() {
                 </div>
 
                 <div className="mt-2 flex items-center gap-2">
-                  <Button asChild type="button" variant="outline" size="icon" className="size-8 rounded-full bg-background sm:size-9">
-                    <Link to="/search" search={{ q: query.trim() || undefined }} aria-label="Open search & discovery" title="Search & discovery"><Search /></Link>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="size-8 rounded-full bg-background sm:size-9"
+                    aria-label="Run this question"
+                    title={askMode === "general" ? "Answer here on the canvas" : "Search this question"}
+                    onClick={() => {
+                      const prompt = query.trim();
+                      if (!prompt) return;
+                      if (askMode === "academic") void navigate({ to: "/search", search: { q: prompt } });
+                      else void runGeneralAsk(prompt);
+                    }}
+                  >
+                    <Search />
                   </Button>
                   <VoiceInput
                     label="Dictate your question"
