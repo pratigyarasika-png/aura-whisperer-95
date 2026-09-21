@@ -16,8 +16,11 @@ import {
   FolderKanban,
   Gauge,
   GraduationCap,
+  ImagePlus,
   LayoutDashboard,
   Library,
+  LayoutTemplate,
+  LineChart,
   Menu,
   MessageSquareText,
   Moon,
@@ -30,6 +33,7 @@ import {
   Quote,
   Search,
   Send,
+  Sigma,
   Sparkles,
   Square,
   Sun,
@@ -39,6 +43,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { EquationScanner } from "@/components/EquationScanner";
 import { VoiceInput } from "@/components/VoiceInput";
 import { Button } from "@/components/ui/button";
 import { streamAssist } from "@/lib/assist-client";
@@ -733,6 +738,8 @@ function ResearchWorkspace() {
             )}
 
 
+            {scannerOpen && <EquationScanner onClose={() => setScannerOpen(false)} />}
+
             <div className="mt-6 grid w-full max-w-3xl gap-3 sm:mt-4 sm:grid-cols-3">
               {[
                 [MessageSquareText, "Compare methods", "Across selected studies"],
@@ -747,6 +754,48 @@ function ResearchWorkspace() {
                   </button>
                 );
               })}
+            </div>
+
+            <div className="mt-10 w-full max-w-5xl">
+              <div className="mb-5 text-center">
+                <p className="mb-2 text-xs font-semibold uppercase text-primary-ink">All modules</p>
+                <h3 className="font-display text-2xl font-semibold sm:text-3xl">Twelve tools, one workspace</h3>
+                <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">Everything in Infinity, grouped by what you are doing.</p>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {featureGroups.map((group) => (
+                  <div key={group.category} className="rounded-lg border border-border bg-card p-4">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{group.category}</p>
+                    <div className="mt-3 space-y-1">
+                      {group.items.map((item) => {
+                        const ItemIcon = item.icon;
+                        const cls = "flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left transition-colors hover:bg-accent";
+                        const content = (
+                          <>
+                            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-mint text-teal-ink"><ItemIcon className="size-4" /></span>
+                            <span className="min-w-0">
+                              <span className="block truncate text-xs font-semibold">{item.label}</span>
+                              <span className="block truncate text-[10px] text-muted-foreground">{item.helper}</span>
+                            </span>
+                          </>
+                        );
+                        if (item.action === "scanner") {
+                          return (
+                            <button key={item.label} type="button" className={cls} onClick={() => setScannerOpen(true)}>
+                              {content}
+                            </button>
+                          );
+                        }
+                        return (
+                          <Link key={item.label} to={item.to!} className={cls} {...(item.to === "/search" ? { search: { q: undefined as string | undefined } } : {})}>
+                            {content}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </section>
         </main>
