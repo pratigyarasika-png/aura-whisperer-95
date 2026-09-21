@@ -17,13 +17,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/converter")({
   head: () => ({
     meta: [
-      { title: "Converter Hub — Orbis File Conversion" },
+      { title: "Converter Hub — Infinity File Conversion" },
       {
         name: "description",
         content:
           "Convert PDF to Word or text, CSV to Excel or JSON, and images to PDF or OCR text entirely in your browser.",
       },
-      { property: "og:title", content: "Converter Hub — Orbis File Conversion" },
+      { property: "og:title", content: "Converter Hub — Infinity File Conversion" },
       {
         property: "og:description",
         content: "Drag-and-drop private file conversion for documents, spreadsheets and images.",
@@ -90,7 +90,7 @@ function ConverterHub() {
         <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-3 px-4 py-3">
           <Button asChild variant="ghost" size="sm" className="h-9 rounded-full px-3 text-xs">
             <Link to="/">
-              <ArrowLeft className="mr-1 size-4" /> Orbis
+              <ArrowLeft className="mr-1 size-4" /> Infinity
             </Link>
           </Button>
           <div className="min-w-0">

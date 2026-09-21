@@ -77,10 +77,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Orbis Research" },
+      { title: "Infinity Research" },
       { name: "description", content: "AI-assisted academic research workspace." },
-      { name: "author", content: "Orbis" },
-      { property: "og:title", content: "Orbis Research" },
+      { name: "author", content: "Infinity" },
+      { property: "og:title", content: "Infinity Research" },
       { property: "og:description", content: "AI-assisted academic research workspace." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

@@ -27,9 +27,9 @@ import { interpretDataset } from "@/lib/data-insights.functions";
 
 export const Route = createFileRoute("/analyze")({
   head: () => ({ meta: [
-    { title: "Data Analysis Suite — Orbis" },
+    { title: "Data Analysis Suite — Infinity" },
     { name: "description", content: "Analyze CSV and Excel datasets with charts, statistics, regression, and AI interpretation." },
-    { property: "og:title", content: "Data Analysis Suite — Orbis" },
+    { property: "og:title", content: "Data Analysis Suite — Infinity" },
     { property: "og:description", content: "Explore datasets with statistical tests, visualizations, and careful AI interpretation." },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
