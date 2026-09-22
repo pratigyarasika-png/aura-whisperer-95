@@ -44,6 +44,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import { EquationScanner } from "@/components/EquationScanner";
+import { InfinityResearchBoard } from "@/components/InfinityResearchBoard";
 import { VoiceInput } from "@/components/VoiceInput";
 import { Button } from "@/components/ui/button";
 import { streamAssist } from "@/lib/assist-client";
@@ -247,7 +248,7 @@ function ResearchWorkspace() {
     window.localStorage.setItem(ASK_MODE_KEY, next);
   };
 
-  const runGeneralAsk = async (prompt: string) => {
+  const runGeneralAsk = async (prompt: string, steering?: string) => {
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -258,8 +259,9 @@ function ResearchWorkspace() {
       await streamAssist(
         {
           mode: engineMode === "journal" || engineMode === "deep" ? "pro" : engineMode,
-          instruction:
-            "Answer the user's question as a helpful general-purpose assistant. Do not search or cite academic literature unless the user explicitly asks for it.",
+          instruction: steering
+            ? `Answer the user's question as a helpful general-purpose academic assistant. Revise or extend the response using this live instruction: ${steering}`
+            : "Answer the user's question as a helpful general-purpose assistant. When a bracketed workflow context is present, follow it closely. Do not invent academic citations.",
           question: prompt,
         },
         (delta) => setAnswer((value) => value + delta),
@@ -583,221 +585,13 @@ function ResearchWorkspace() {
         </header>
 
         <main className="workspace-grid min-h-[calc(100vh-7.5rem)] overflow-hidden px-4 py-8 sm:px-8 sm:py-10 lg:px-12">
-          <section className="mx-auto flex w-full max-w-6xl flex-col items-center">
-            <div className="mb-7 text-center sm:mb-10">
-              <p className="mb-3 text-xs font-semibold uppercase text-primary-ink">Infinity AI workspace</p>
-              <h2 className="font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">What are you investigating?</h2>
-              <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
-                Start with a question, paper, or concept. Infinity will trace the evidence around it.
-              </p>
-            </div>
-
-            <div className="hub-stage relative grid aspect-square w-full max-w-[42rem] place-items-center">
-              <div className="orbit orbit-outer absolute inset-[5%] rounded-full border border-dashed border-primary/25" />
-              <div className="orbit orbit-inner absolute inset-[19%] rounded-full border border-border" />
-              <div className="hub-glow absolute inset-[27%] rounded-full" />
-
-              {hubActions.map((action) => {
-                const Icon = action.icon;
-                const cls = cn("hub-action group absolute flex items-center gap-2.5 rounded-full border border-border bg-card p-2 pr-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md", action.position);
-                const inner = (
-                  <>
-                    <span className="grid size-9 shrink-0 place-items-center rounded-full bg-mint text-teal-ink transition-colors group-hover:bg-teal-deep group-hover:text-teal-deep-foreground"><Icon className="size-4" /></span>
-                    <span className="hub-action-copy block min-w-0">
-                      <span className="hub-action-label block truncate whitespace-nowrap text-[11px] font-semibold sm:text-xs">{action.label}</span>
-                      <span className="hub-action-helper block truncate text-[10px] text-muted-foreground">{action.helper}</span>
-                    </span>
-                  </>
-                );
-                if (action.to === "/search") {
-                  return (
-                    <Link key={action.label} to="/search" search={{ q: query.trim() || undefined }} className={cls}>
-                      {inner}
-                    </Link>
-                  );
-                }
-                if (action.to === "/write") {
-                  return (
-                    <Link key={action.label} to="/write" className={cls}>
-                      {inner}
-                    </Link>
-                  );
-                }
-                if (action.to === "/analyze") {
-                  return (
-                    <Link key={action.label} to="/analyze" className={cls}>
-                      {inner}
-                    </Link>
-                  );
-                }
-                if (action.to === "/analysis") {
-                  return (
-                    <Link key={action.label} to="/analysis" className={cls}>
-                      {inner}
-                    </Link>
-                  );
-                }
-                return (
-                  <button key={action.label} type="button" className={cls}>
-                    {inner}
-                  </button>
-                );
-
-              })}
-
-              <form className="hub-core relative z-10 flex aspect-square w-[64%] max-w-[25rem] flex-col items-center justify-center rounded-full border border-primary/25 bg-card p-[8%] text-center shadow-2xl sm:w-[60%] sm:p-[8%]" onSubmit={(event) => {
-                  event.preventDefault();
-                  const prompt = query.trim();
-                  if (!prompt) return;
-                  if (askMode === "academic") navigate({ to: "/search", search: { q: prompt } });
-                  else void runGeneralAsk(prompt);
-                }}>
-                <span className="mb-2 grid size-10 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg sm:mb-4 sm:size-12"><WandSparkles className="size-4 sm:size-5" /></span>
-                <label htmlFor="research-query" className="font-display text-sm font-semibold sm:text-lg">Ask Infinity</label>
-                <textarea
-                  id="research-query"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder={askMode === "general" ? "Explain transformers like I'm new to ML" : "How does sleep affect memory consolidation?"}
-                  className="mt-2 min-h-12 w-full resize-none bg-transparent text-center text-[11px] leading-5 outline-none placeholder:text-muted-foreground sm:min-h-20 sm:text-sm"
-                />
-
-                <div className="mode-toggle mt-1 flex items-center gap-0.5 rounded-full border border-border bg-background p-0.5" role="radiogroup" aria-label="Assistant mode">
-                  {askModes.map((mode) => {
-                    const ModeIcon = mode.icon;
-                    const selected = askMode === mode.id;
-                    return (
-                      <button
-                        key={mode.id}
-                        type="button"
-                        role="radio"
-                        aria-checked={selected}
-                        title={`${mode.label} — ${mode.hint}`}
-                        onClick={() => chooseAskMode(mode.id)}
-                        className={cn(
-                          "flex items-center gap-1.5 rounded-full px-2 py-1 text-[10px] font-semibold transition-colors sm:px-2.5 sm:text-[11px]",
-                          selected ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted",
-                        )}
-                      >
-                        <ModeIcon className="size-3.5 shrink-0" />
-                        <span className="hidden sm:inline">{mode.label}</span>
-                        <span className="sm:hidden">{mode.id === "general" ? "General" : "Research"}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-2 flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="size-8 rounded-full bg-background sm:size-9"
-                    aria-label="Run this question"
-                    title={askMode === "general" ? "Answer here on the canvas" : "Search this question"}
-                    onClick={() => {
-                      const prompt = query.trim();
-                      if (!prompt) return;
-                      if (askMode === "academic") void navigate({ to: "/search", search: { q: prompt } });
-                      else void runGeneralAsk(prompt);
-                    }}
-                  >
-                    <Search />
-                  </Button>
-                  <VoiceInput
-                    label="Dictate your question"
-                    onText={(text) => setQuery((value) => (value ? `${value} ${text}` : text))}
-                  />
-                  {answering ? (
-                    <Button type="button" variant="outline" className="h-8 rounded-full px-3 sm:h-9 sm:px-4" onClick={() => abortRef.current?.abort()}>
-                      <Square className="size-3.5" /><span className="hidden sm:inline">Stop</span>
-                    </Button>
-                  ) : (
-                    <Button type="submit" className="h-8 rounded-full px-3 shadow-lg sm:h-9 sm:px-4" disabled={!query.trim()}>
-                      <span className="hidden sm:inline">{askMode === "general" ? "Ask" : "Explore"}</span><Send />
-                    </Button>
-                  )}
-                </div>
-              </form>
-            </div>
-
-            {askMode === "general" && (answer || answering || answerError) && (
-              <div className="rise-in mt-6 w-full max-w-3xl rounded-lg border border-border bg-card p-4 text-left sm:p-5">
-                <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                  <Sparkles className="size-3.5" /> General AI answer
-                </div>
-                {answerError ? (
-                  <p className="text-sm text-destructive">{answerError}</p>
-                ) : (
-                  <p className="whitespace-pre-wrap text-sm leading-6">
-                    {answer}
-                    {answering && <span className="ml-0.5 animate-pulse">▍</span>}
-                  </p>
-                )}
-              </div>
-            )}
-
-
-            {scannerOpen && <EquationScanner onClose={() => setScannerOpen(false)} />}
-
-            <div className="mt-6 grid w-full max-w-3xl gap-3 sm:mt-4 sm:grid-cols-3">
-              {[
-                [MessageSquareText, "Compare methods", "Across selected studies"],
-                [Archive, "Build a review", "Organize the evidence"],
-                [BookOpenText, "Read with AI", "Interrogate a paper"],
-              ].map(([Icon, title, detail]) => {
-                const ActionIcon = Icon as typeof MessageSquareText;
-                return (
-                  <button key={title as string} className="quick-action flex min-w-0 items-center gap-3 rounded-md border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary/40 hover:bg-accent">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-full bg-secondary"><ActionIcon className="size-4" /></span>
-                    <span className="min-w-0"><span className="block truncate text-xs font-semibold">{title as string}</span><span className="block truncate text-[11px] text-muted-foreground">{detail as string}</span></span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-10 w-full max-w-5xl">
-              <div className="mb-5 text-center">
-                <p className="mb-2 text-xs font-semibold uppercase text-primary-ink">All modules</p>
-                <h3 className="font-display text-2xl font-semibold sm:text-3xl">Twelve tools, one workspace</h3>
-                <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">Everything in Infinity, grouped by what you are doing.</p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {featureGroups.map((group) => (
-                  <div key={group.category} className="rounded-lg border border-border bg-card p-4">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{group.category}</p>
-                    <div className="mt-3 space-y-1">
-                      {group.items.map((item) => {
-                        const ItemIcon = item.icon;
-                        const cls = "flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left transition-colors hover:bg-accent";
-                        const content = (
-                          <>
-                            <span className="grid size-8 shrink-0 place-items-center rounded-full bg-mint text-teal-ink"><ItemIcon className="size-4" /></span>
-                            <span className="min-w-0">
-                              <span className="block truncate text-xs font-semibold">{item.label}</span>
-                              <span className="block truncate text-[10px] text-muted-foreground">{item.helper}</span>
-                            </span>
-                          </>
-                        );
-                        if (item.action === "scanner") {
-                          return (
-                            <button key={item.label} type="button" className={cls} onClick={() => setScannerOpen(true)}>
-                              {content}
-                            </button>
-                          );
-                        }
-                        return (
-                          <Link key={item.label} to={item.to!} className={cls} {...(item.to === "/search" ? { search: { q: undefined as string | undefined } } : {})}>
-                            {content}
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
+          <InfinityResearchBoard
+            answer={answer}
+            answering={answering}
+            error={answerError}
+            onAsk={(prompt, steering) => void runGeneralAsk(prompt, steering)}
+            onStop={() => abortRef.current?.abort()}
+          />
         </main>
       </div>
     </div>
