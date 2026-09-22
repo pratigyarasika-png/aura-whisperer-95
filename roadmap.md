@@ -7,3 +7,12 @@
 - [x] Tambahkan modul Equation Scanner bergaya Photomath untuk foto/gambar persamaan.
 - [x] Pertahankan konsistensi visual halaman analisis dan ikon fungsional.
 - [x] Verifikasi build, interaksi, desktop, dan mobile.
+
+## Infinity Advanced Workspace
+
+- [ ] Ganti orbit lama dengan papan pencarian pill yang bersih dan responsif.
+- [ ] Tambahkan menu lampiran multi-format dan shortcut Google Workspace.
+- [ ] Hubungkan 12 modul ke chip konteks otomatis pada input utama.
+- [ ] Tambahkan panel Aktivitas Langsung dan prompt steering.
+- [ ] Tambahkan Virtual Math Keypad untuk konteks Equation.
+- [ ] Verifikasi interaksi utama, desktop, mobile, dan error TypeScript.
