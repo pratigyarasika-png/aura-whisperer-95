@@ -16,3 +16,12 @@
 - [ ] Tambahkan panel Aktivitas Langsung dan prompt steering.
 - [ ] Tambahkan Virtual Math Keypad untuk konteks Equation.
 - [ ] Verifikasi interaksi utama, desktop, mobile, dan error TypeScript.
+
+## Infinity Precision UI & Module Expansion
+
+- [ ] Rapikan papan utama menjadi kartu oval responsif dengan tombol Plus dan Kamera di dalam input.
+- [ ] Pastikan node Data Suite dan bentuk orbit lama tidak tampil.
+- [ ] Samakan akses General AI dan Academic Research ke seluruh alat dan modul.
+- [ ] Tambahkan katalog empat kolom fitur lanjutan sesuai daftar referensi.
+- [ ] Hubungkan seluruh kartu fitur ke chip konteks aktif pada papan utama.
+- [ ] Verifikasi interaksi, respons desktop/mobile, dan nol error TypeScript.
