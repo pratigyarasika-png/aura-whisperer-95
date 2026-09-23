@@ -2,6 +2,7 @@ import {
   Activity,
   BookOpen,
   Calculator,
+  Camera,
   Check,
   ChevronDown,
   CircleStop,
@@ -39,6 +40,8 @@ type Props = {
   answer: string;
   answering: boolean;
   error: string | null;
+  mode: "general" | "academic";
+  onModeChange: (mode: "general" | "academic") => void;
   onAsk: (prompt: string, steering?: string) => void;
   onStop: () => void;
 };
@@ -106,7 +109,34 @@ const mathKeys = [
   { label: "Matrix", value: "\\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix}" },
 ];
 
-export function InfinityResearchBoard({ answer, answering, error, onAsk, onStop }: Props) {
+const advancedGroups: Array<{ category: string; description: string; icon: typeof Search; items: string[] }> = [
+  {
+    category: "Riset & Integrasi Library",
+    description: "Sumber ilmiah dan koleksi riset",
+    icon: BookOpen,
+    items: ["Deep Research", "Zotero Library", "Mendeley Library", "Pubmed", "Google Scholar", "ArXiv", "Python Library", "Grants.gov", "Uploaded Files", "ClinicalTrials.gov", "Google Search"],
+  },
+  {
+    category: "Alur Kerja Literasi & Analisis",
+    description: "Alur riset dari pencarian hingga laporan",
+    icon: Network,
+    items: ["Review Literature", "Write a Draft", "Generate Diagram", "Systematic Review", "Search Papers", "Extract Data", "Review my Writing", "Write a Report", "Analyse Data", "Find Datasets", "Find Grants"],
+  },
+  {
+    category: "Alat Bantu Spesialis",
+    description: "Peralatan khusus untuk pekerjaan teknis",
+    icon: Terminal,
+    items: ["Find Grants", "Create Poster", "Convert a File", "Search Patents", "Paraphrase Text", "Clean my Data", "Write Grant Letter", "Solve Equations", "Scrape Data", "Extract Images", "Find Courses"],
+  },
+  {
+    category: "MAKE A",
+    description: "Generator dokumen, visual, dan aplikasi",
+    icon: Sparkles,
+    items: ["Word document", "PPT presentation", "LaTeX Manuscript", "LaTeX Poster", "Data Visualisation", "PDF Report", "Website", "Infographic", "Flowchart", "Interactive App", "Image", "Google Patents", "Online Datasets", "Image Generator"],
+  },
+];
+
+export function InfinityResearchBoard({ answer, answering, error, mode, onModeChange, onAsk, onStop }: Props) {
   const [query, setQuery] = useState("");
   const [context, setContext] = useState<string | null>(null);
   const [expanded, setExpanded] = useState(false);
@@ -117,6 +147,7 @@ export function InfinityResearchBoard({ answer, answering, error, onAsk, onStop 
   const [step, setStep] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const documentRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLInputElement>(null);
 
@@ -184,9 +215,15 @@ export function InfinityResearchBoard({ answer, answering, error, onAsk, onStop 
       </div>
 
       <div className="mx-auto mt-8 max-w-4xl">
+        <div className="mb-3 flex justify-center">
+          <div className="inline-flex rounded-full border border-border bg-card p-1 shadow-sm" aria-label="Mode Infinity">
+            <Button type="button" variant={mode === "general" ? "default" : "ghost"} size="sm" className="rounded-full" onClick={() => onModeChange("general")}><Sparkles /> General AI</Button>
+            <Button type="button" variant={mode === "academic" ? "default" : "ghost"} size="sm" className="rounded-full" onClick={() => onModeChange("academic")}><BookOpen /> Academic Research</Button>
+          </div>
+        </div>
         <form
           className={cn(
-            "research-pill relative rounded-[2rem] border bg-card shadow-lg transition-all duration-300",
+            "research-pill relative rounded-[1.75rem] border bg-card shadow-lg transition-all duration-300",
             expanded ? "border-primary/50 shadow-xl" : "border-border",
           )}
           onSubmit={(event) => {
@@ -214,6 +251,9 @@ export function InfinityResearchBoard({ answer, answering, error, onAsk, onStop 
                 </div>
               )}
             </div>
+            <Button type="button" variant="ghost" size="icon" className="size-10 shrink-0 rounded-full" onClick={() => cameraRef.current?.click()} aria-label="Ambil foto untuk OCR" title="Ambil foto untuk OCR">
+              <Camera />
+            </Button>
 
             <div className="min-w-0 flex-1" onClick={focusInput}>
               {(context || attachment) && (
@@ -245,13 +285,14 @@ export function InfinityResearchBoard({ answer, answering, error, onAsk, onStop 
 
           {expanded && (
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5">
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-ink"><Sparkles className="size-3.5" /> AI Umum aktif</span>
+              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-ink"><Sparkles className="size-3.5" /> {mode === "general" ? "General AI" : "Academic Research"} · semua alat aktif</span>
               <Button type="button" variant="ghost" size="sm" className="h-8 rounded-full text-xs" onClick={() => setActivityOpen((value) => !value)}><Activity /> Aktivitas Langsung <ChevronDown className={cn("transition-transform", activityOpen && "rotate-180")} /></Button>
             </div>
           )}
         </form>
 
         <input ref={imageRef} className="hidden" type="file" accept="image/*" onChange={(event) => attach(event.target.files?.[0])} />
+        <input ref={cameraRef} className="hidden" type="file" accept="image/*" capture="environment" onChange={(event) => attach(event.target.files?.[0])} />
         <input ref={documentRef} className="hidden" type="file" accept=".pdf,.doc,.docx,.csv,.xls,.xlsx,.ppt,.pptx" onChange={(event) => attach(event.target.files?.[0])} />
         <input ref={videoRef} className="hidden" type="file" accept="video/*,audio/*" onChange={(event) => attach(event.target.files?.[0])} />
 
@@ -312,6 +353,35 @@ export function InfinityResearchBoard({ answer, answering, error, onAsk, onStop 
           ))}
         </div>
       </div>
+
+      <div className="mt-14 border-t border-border pt-10">
+        <div className="mb-6">
+          <p className="text-xs font-semibold uppercase text-primary-ink">Peralatan lanjutan</p>
+          <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Satu pintu untuk seluruh alur kerja</h3>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {advancedGroups.map((group) => {
+            const GroupIcon = group.icon;
+            return (
+              <section key={group.category} className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+                <div className="border-b border-border bg-mint/60 p-4">
+                  <span className="mb-3 grid size-9 place-items-center rounded-full bg-teal-deep text-teal-deep-foreground"><GroupIcon className="size-4" /></span>
+                  <h4 className="text-sm font-semibold">{group.category}</h4>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">{group.description}</p>
+                </div>
+                <div className="p-2">
+                  {group.items.map((item) => (
+                    <Button key={item} type="button" variant="ghost" className={cn("h-9 w-full justify-start rounded-md px-3 text-left text-xs", context === item && "bg-mint text-teal-ink")} onClick={() => activateModule({ label: item, chip: item, description: "", icon: GroupIcon })}>
+                      <Plus className="size-3.5" />
+                      <span className="truncate">{item}</span>
+                    </Button>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      </div>
     </section>
   );
 }
@@ -325,5 +395,5 @@ function WorkspaceLink({ icon: Icon, label, href }: { icon: typeof FileText; lab
 }
 
 function ActiveChip({ label, onRemove, icon: Icon = Sparkles }: { label: string; onRemove: () => void; icon?: typeof Sparkles }) {
-  return <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-mint px-2.5 py-1 text-xs font-semibold text-teal-ink"><Icon className="size-3" /><span className="truncate">{label}</span><button type="button" onClick={(event) => { event.stopPropagation(); onRemove(); }} className="rounded-full" aria-label={`Hapus ${label}`}><X className="size-3" /></button></span>;
+  return <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-mint py-0.5 pl-2.5 pr-0.5 text-xs font-semibold text-teal-ink"><Icon className="size-3" /><span className="truncate">{label}</span><Button type="button" variant="ghost" size="icon" onClick={(event) => { event.stopPropagation(); onRemove(); }} className="size-6 rounded-full" aria-label={`Hapus ${label}`}><X className="size-3" /></Button></span>;
 }

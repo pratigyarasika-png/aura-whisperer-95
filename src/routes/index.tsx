@@ -1,51 +1,34 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  Archive,
   BarChart2,
   Bot,
   BookMarked,
-  BookOpenText,
   BrainCircuit,
   Check,
-  ChevronLeft,
   ChevronRight,
   CircleUserRound,
   Cloud,
-  Code2,
-  FileText,
   FolderKanban,
   Gauge,
   GraduationCap,
-  ImagePlus,
   LayoutDashboard,
   Library,
-  LayoutTemplate,
-  LineChart,
   Menu,
-  MessageSquareText,
   Moon,
-  Network,
   Palette,
   PanelLeftClose,
   PanelLeftOpen,
   PenTool,
   Plus,
-  Quote,
   Search,
-  Send,
-  Sigma,
   Sparkles,
-  Square,
   Sun,
   Terminal,
-  WandSparkles,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-import { EquationScanner } from "@/components/EquationScanner";
 import { InfinityResearchBoard } from "@/components/InfinityResearchBoard";
-import { VoiceInput } from "@/components/VoiceInput";
 import { Button } from "@/components/ui/button";
 import { streamAssist } from "@/lib/assist-client";
 import { DEFAULT_ACCENT, accentForeground, accentPresets, isHex } from "@/lib/theme";
@@ -77,21 +60,6 @@ type EngineMode = "flash" | "pro" | "expert" | "deep" | "journal";
 type AskMode = "general" | "academic";
 
 const ASK_MODE_KEY = "orbis-ask-mode";
-
-const askModes = [
-  {
-    id: "general",
-    label: "General AI",
-    hint: "Chat, code, and writing — no journal search",
-    icon: Sparkles,
-  },
-  {
-    id: "academic",
-    label: "Academic Research",
-    hint: "Search papers, synthesize literature, build citations",
-    icon: GraduationCap,
-  },
-] satisfies Array<{ id: AskMode; label: string; hint: string; icon: typeof Sparkles }>;
 
 const defaultEngine = {
   id: "flash",
@@ -151,67 +119,7 @@ const recentSessions = [
   { title: "Quantum sensing review", time: "Mon" },
 ];
 
-const hubActions: Array<{
-  label: string;
-  helper: string;
-  icon: typeof Search;
-  position: string;
-  to?: "/search" | "/write" | "/analyze" | "/analysis" | "/converter";
-  withQuery?: boolean;
-}> = [
-  { label: "Find papers", helper: "Search literature", icon: Search, position: "hub-action-top", to: "/search", withQuery: true },
-  { label: "Map concepts", helper: "Connect findings", icon: Network, position: "hub-action-right", to: "/analyze" },
-  { label: "Cite sources", helper: "Build references", icon: Quote, position: "hub-action-bottom", to: "/write" },
-  { label: "Analyze PDF", helper: "Ask documents", icon: FileText, position: "hub-action-left", to: "/search" },
-  { label: "Data Suite", helper: "Code & statistics", icon: Code2, position: "hub-action-sw", to: "/analysis" },
-];
-
-
-type FeatureTo = "/search" | "/write" | "/analyze" | "/analysis" | "/converter";
-
-const featureGroups: Array<{
-  category: string;
-  items: Array<{ label: string; helper: string; icon: typeof Search; to?: FeatureTo; action?: "scanner" }>;
-}> = [
-  {
-    category: "Research",
-    items: [
-      { label: "Literature search", helper: "Find papers fast", icon: Search, to: "/search" },
-      { label: "Concept mapping", helper: "Connect findings", icon: Network, to: "/analyze" },
-      { label: "Document Q&A", helper: "Ask PDFs & files", icon: FileText, to: "/search" },
-    ],
-  },
-  {
-    category: "Writing",
-    items: [
-      { label: "Manuscript editor", helper: "Draft with AI", icon: PenTool, to: "/write" },
-      { label: "Citation builder", helper: "APA, MLA, IEEE", icon: Quote, to: "/write" },
-      { label: "Poster builder", helper: "Conference posters", icon: LayoutTemplate, to: "/write" },
-    ],
-  },
-  {
-    category: "Data",
-    items: [
-      { label: "Code & statistics", helper: "Python in browser", icon: Code2, to: "/analysis" },
-      { label: "Statistics suite", helper: "Tests & models", icon: BarChart2, to: "/analyze" },
-      { label: "Chart figures", helper: "Publication-ready plots", icon: LineChart, to: "/analyze" },
-    ],
-  },
-  {
-    category: "AI Tools",
-    items: [
-      { label: "Equation scanner", helper: "Solve from a photo", icon: Sigma, action: "scanner" },
-      { label: "Image generator", helper: "Figures & diagrams", icon: ImagePlus, to: "/write" },
-      { label: "Export & sync", helper: "Docs, slides, cloud", icon: Cloud, to: "/converter" },
-    ],
-  },
-];
-
-
-
-
 function ResearchWorkspace() {
-  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
@@ -220,14 +128,12 @@ function ResearchWorkspace() {
   const [theme, setTheme] = useState<Theme>("light");
   const [accent, setAccent] = useState(DEFAULT_ACCENT);
   const [draftAccent, setDraftAccent] = useState(DEFAULT_ACCENT);
-  const [query, setQuery] = useState("");
   const [statusIndex, setStatusIndex] = useState(0);
   const [askMode, setAskMode] = useState<AskMode>("general");
   const [answer, setAnswer] = useState("");
   const [answering, setAnswering] = useState(false);
   const [answerError, setAnswerError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const [scannerOpen, setScannerOpen] = useState(false);
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("orbis-theme");
@@ -260,8 +166,10 @@ function ResearchWorkspace() {
         {
           mode: engineMode === "journal" || engineMode === "deep" ? "pro" : engineMode,
           instruction: steering
-            ? `Answer the user's question as a helpful general-purpose academic assistant. Revise or extend the response using this live instruction: ${steering}`
-            : "Answer the user's question as a helpful general-purpose assistant. When a bracketed workflow context is present, follow it closely. Do not invent academic citations.",
+            ? `Use every available research and productivity capability to revise or extend the response using this live instruction: ${steering}`
+            : askMode === "academic"
+              ? "Use the full Infinity toolkit as an academic research assistant. Follow any bracketed workflow context, prioritize verifiable evidence, and never invent citations."
+              : "Use the full Infinity research and productivity toolkit as a general-purpose assistant. Follow any bracketed workflow context closely and never invent academic citations.",
           question: prompt,
         },
         (delta) => setAnswer((value) => value + delta),
@@ -589,6 +497,8 @@ function ResearchWorkspace() {
             answer={answer}
             answering={answering}
             error={answerError}
+            mode={askMode}
+            onModeChange={chooseAskMode}
             onAsk={(prompt, steering) => void runGeneralAsk(prompt, steering)}
             onStop={() => abortRef.current?.abort()}
           />
