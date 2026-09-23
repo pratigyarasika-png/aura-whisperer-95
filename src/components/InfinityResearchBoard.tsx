@@ -395,5 +395,5 @@ function WorkspaceLink({ icon: Icon, label, href }: { icon: typeof FileText; lab
 }
 
 function ActiveChip({ label, onRemove, icon: Icon = Sparkles }: { label: string; onRemove: () => void; icon?: typeof Sparkles }) {
-  return <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-mint px-2.5 py-1 text-xs font-semibold text-teal-ink"><Icon className="size-3" /><span className="truncate">{label}</span><button type="button" onClick={(event) => { event.stopPropagation(); onRemove(); }} className="rounded-full" aria-label={`Hapus ${label}`}><X className="size-3" /></button></span>;
+  return <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-mint py-0.5 pl-2.5 pr-0.5 text-xs font-semibold text-teal-ink"><Icon className="size-3" /><span className="truncate">{label}</span><Button type="button" variant="ghost" size="icon" onClick={(event) => { event.stopPropagation(); onRemove(); }} className="size-6 rounded-full" aria-label={`Hapus ${label}`}><X className="size-3" /></Button></span>;
 }

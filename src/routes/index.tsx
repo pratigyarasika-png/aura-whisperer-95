@@ -166,8 +166,10 @@ function ResearchWorkspace() {
         {
           mode: engineMode === "journal" || engineMode === "deep" ? "pro" : engineMode,
           instruction: steering
-            ? `Answer the user's question as a helpful general-purpose academic assistant. Revise or extend the response using this live instruction: ${steering}`
-            : "Answer the user's question as a helpful general-purpose assistant. When a bracketed workflow context is present, follow it closely. Do not invent academic citations.",
+            ? `Use every available research and productivity capability to revise or extend the response using this live instruction: ${steering}`
+            : askMode === "academic"
+              ? "Use the full Infinity toolkit as an academic research assistant. Follow any bracketed workflow context, prioritize verifiable evidence, and never invent citations."
+              : "Use the full Infinity research and productivity toolkit as a general-purpose assistant. Follow any bracketed workflow context closely and never invent academic citations.",
           question: prompt,
         },
         (delta) => setAnswer((value) => value + delta),
