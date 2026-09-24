@@ -1,24 +1,26 @@
 import {
   Activity,
+  BarChart3,
   BookOpen,
   Calculator,
   Camera,
   Check,
   ChevronDown,
   CircleStop,
-  Cloud,
+  CloudUpload,
+  Code2,
+  Database,
   FileCheck,
   FileImage,
-  FileSpreadsheet,
   FileText,
-  FolderOpen,
-  Image,
+  Image as ImageIcon,
+  LayoutTemplate,
+  LineChart,
   MessageSquare,
-  Mic,
   Network,
   PenTool,
   Plus,
-  Presentation,
+  Quote,
   RefreshCw,
   ScanText,
   Search,
@@ -29,9 +31,11 @@ import {
   Video,
   X,
   Zap,
+  type LucideIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { EquationCalculator } from "@/components/EquationCalculator";
 import { VoiceInput } from "@/components/VoiceInput";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -46,100 +50,63 @@ type Props = {
   onStop: () => void;
 };
 
-type Module = {
-  label: string;
-  chip: string;
-  description: string;
-  icon: typeof Search;
-};
+type Feature = { label: string; description: string; icon: LucideIcon };
 
-const moduleGroups: Array<{ category: string; modules: Module[] }> = [
+const featureGroups: Array<{ category: string; description: string; features: Feature[] }> = [
   {
-    category: "Riset & Analisis Literatur",
-    modules: [
-      { label: "Ulas Literatur", chip: "Ulas Literatur", description: "Analisis dan sintesis otomatis antar-makalah.", icon: BookOpen },
-      { label: "Cari Makalah Akademis", chip: "Cari Makalah", description: "Pencarian jurnal ilmiah dan naskah riset.", icon: Search },
-      { label: "Tinjauan Sistematis", chip: "Tinjauan Sistematis", description: "Ekstraksi tabel pembanding matriks riset.", icon: FileCheck },
-      { label: "Peta Konsep", chip: "Peta Konsep", description: "Grafik keterkaitan antar-studi dan sitasi.", icon: Network },
+    category: "RISET",
+    description: "Temukan dan hubungkan bukti ilmiah",
+    features: [
+      { label: "Ulas Literatur", description: "Sintesis studi terpilih", icon: BookOpen },
+      { label: "Cari Makalah", description: "Jurnal dan naskah riset", icon: Search },
+      { label: "Tinjauan Sistematis", description: "Matriks bukti terstruktur", icon: FileCheck },
+      { label: "Peta Konsep", description: "Relasi ide dan sitasi", icon: Network },
     ],
   },
   {
-    category: "Pembaca & Pemroses Dokumen",
-    modules: [
-      { label: "Ringkasan PDF", chip: "Ringkasan PDF", description: "Rangkuman poin penting dokumen panjang.", icon: FileText },
-      { label: "Chat PDF", chip: "Chat PDF", description: "Tanya-jawab berdasarkan isi berkas.", icon: MessageSquare },
-      { label: "Ekstrak Tabel", chip: "Ekstrak Tabel", description: "Tarik data numerik ke CSV atau Excel.", icon: Table },
-      { label: "OCR Gambar", chip: "OCR Gambar", description: "Ekstrak teks dari foto atau cetakan.", icon: ScanText },
+    category: "MENULIS",
+    description: "Susun karya akademik lebih cepat",
+    features: [
+      { label: "Tulis Draf", description: "Editor naskah terpandu", icon: PenTool },
+      { label: "Tulis Laporan", description: "Laporan riset terstruktur", icon: FileText },
+      { label: "Manuskrip & LaTeX", description: "Format publikasi ilmiah", icon: Code2 },
+      { label: "Poster Builder", description: "Poster presentasi riset", icon: LayoutTemplate },
     ],
   },
   {
-    category: "Penulisan, Matematika & Data",
-    modules: [
-      { label: "Tulis Draf Riset", chip: "Tulis Draf", description: "Buat bab, abstrak, dan esai akademik.", icon: PenTool },
-      { label: "Parafrase", chip: "Parafrase", description: "Selaraskan gaya bahasa akademis.", icon: RefreshCw },
-      { label: "Equation", chip: "Equation", description: "Solver matematika dan keypad virtual.", icon: Calculator },
-      { label: "Olah Data & Koding", chip: "Olah Data", description: "Analisis Python dan statistik di browser.", icon: Terminal },
+    category: "DATA",
+    description: "Ubah data menjadi temuan bermakna",
+    features: [
+      { label: "Statistik & Analisis", description: "Uji dan ringkasan statistik", icon: BarChart3 },
+      { label: "Rangkaian Statistik", description: "Tren dan perbandingan data", icon: LineChart },
+      { label: "Kumpulan Data Online", description: "Temukan dataset publik", icon: Database },
+      { label: "Olah Data & Koding", description: "Python dan analisis data", icon: Terminal },
+    ],
+  },
+  {
+    category: "ALAT AI",
+    description: "Alat cerdas untuk pekerjaan khusus",
+    features: [
+      { label: "Equation", description: "Kalkulator dan langkah solusi", icon: Calculator },
+      { label: "Pembuat Sitasi", description: "Format referensi otomatis", icon: Quote },
+      { label: "Image Generator", description: "Visual untuk publikasi", icon: ImageIcon },
+      { label: "Ekspor & Sinkronisasi", description: "Arsip dan sinkronisasi aman", icon: CloudUpload },
     ],
   },
 ];
 
-const progressSteps = [
-  "Memahami tujuan dan konteks pertanyaan…",
-  "Mencari 20+ jurnal terindeks…",
-  "Mengekstrak data dan argumen utama…",
-  "Menyusun sintesis riset…",
+const quickActions: Feature[] = [
+  { label: "Analisis PDF", description: "Baca bukti penting", icon: FileText },
+  { label: "Temukan Makalah", description: "Cari riset tepercaya", icon: Search },
+  { label: "Petakan Konsep", description: "Hubungkan ide", icon: Network },
+  { label: "Kutip Sumber", description: "Buat referensi", icon: Quote },
 ];
 
-const mathKeys = [
-  { label: "x²", value: "^{2}" },
-  { label: "xⁿ", value: "^{}" },
-  { label: "√", value: "\\sqrt{}" },
-  { label: "a⁄b", value: "\\frac{}{}" },
-  { label: "∑", value: "\\sum_{}^{}" },
-  { label: "∫", value: "\\int_{}^{}" },
-  { label: "π", value: "\\pi" },
-  { label: "θ", value: "\\theta" },
-  { label: "∞", value: "\\infty" },
-  { label: "≤", value: "\\leq" },
-  { label: "≥", value: "\\geq" },
-  { label: "≠", value: "\\neq" },
-  { label: "( )", value: "()" },
-  { label: "[ ]", value: "[]" },
-  { label: "|x|", value: "\\lvert x \\rvert" },
-  { label: "Matrix", value: "\\begin{bmatrix} a & b \\\\ c & d \\end{bmatrix}" },
-];
-
-const advancedGroups: Array<{ category: string; description: string; icon: typeof Search; items: string[] }> = [
-  {
-    category: "Riset & Integrasi Library",
-    description: "Sumber ilmiah dan koleksi riset",
-    icon: BookOpen,
-    items: ["Deep Research", "Zotero Library", "Mendeley Library", "Pubmed", "Google Scholar", "ArXiv", "Python Library", "Grants.gov", "Uploaded Files", "ClinicalTrials.gov", "Google Search"],
-  },
-  {
-    category: "Alur Kerja Literasi & Analisis",
-    description: "Alur riset dari pencarian hingga laporan",
-    icon: Network,
-    items: ["Review Literature", "Write a Draft", "Generate Diagram", "Systematic Review", "Search Papers", "Extract Data", "Review my Writing", "Write a Report", "Analyse Data", "Find Datasets", "Find Grants"],
-  },
-  {
-    category: "Alat Bantu Spesialis",
-    description: "Peralatan khusus untuk pekerjaan teknis",
-    icon: Terminal,
-    items: ["Find Grants", "Create Poster", "Convert a File", "Search Patents", "Paraphrase Text", "Clean my Data", "Write Grant Letter", "Solve Equations", "Scrape Data", "Extract Images", "Find Courses"],
-  },
-  {
-    category: "MAKE A",
-    description: "Generator dokumen, visual, dan aplikasi",
-    icon: Sparkles,
-    items: ["Word document", "PPT presentation", "LaTeX Manuscript", "LaTeX Poster", "Data Visualisation", "PDF Report", "Website", "Infographic", "Flowchart", "Interactive App", "Image", "Google Patents", "Online Datasets", "Image Generator"],
-  },
-];
+const progressSteps = ["Memahami tujuan pertanyaan…", "Mencari sumber terindeks…", "Mengekstrak data dan argumen…", "Menyusun sintesis riset…"];
 
 export function InfinityResearchBoard({ answer, answering, error, mode, onModeChange, onAsk, onStop }: Props) {
   const [query, setQuery] = useState("");
   const [context, setContext] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState(false);
   const [attachmentOpen, setAttachmentOpen] = useState(false);
   const [attachment, setAttachment] = useState<string | null>(null);
   const [activityOpen, setActivityOpen] = useState(false);
@@ -147,19 +114,15 @@ export function InfinityResearchBoard({ answer, answering, error, mode, onModeCh
   const [step, setStep] = useState(0);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
-  const cameraRef = useRef<HTMLInputElement>(null);
   const documentRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const saved = window.localStorage.getItem("infinity-canvas-draft");
     if (saved) setQuery(saved);
   }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem("infinity-canvas-draft", query);
-  }, [query]);
-
+  useEffect(() => window.localStorage.setItem("infinity-canvas-draft", query), [query]);
   useEffect(() => {
     if (!answering) return;
     setActivityOpen(true);
@@ -168,232 +131,129 @@ export function InfinityResearchBoard({ answer, answering, error, mode, onModeCh
     return () => window.clearInterval(timer);
   }, [answering]);
 
-  const focusInput = () => {
-    setExpanded(true);
-    window.setTimeout(() => inputRef.current?.focus(), 0);
-  };
-
-  const activateModule = (module: Module) => {
-    setContext(module.chip);
-    setExpanded(true);
+  const activate = (label: string) => {
+    setContext(label);
     setAttachmentOpen(false);
     window.setTimeout(() => inputRef.current?.focus(), 0);
   };
-
   const attach = (file?: File) => {
     if (!file) return;
     setAttachment(file.name);
     setAttachmentOpen(false);
-    setExpanded(true);
   };
-
   const submit = () => {
     const prompt = query.trim();
     if (!prompt && !attachment) return;
-    const composed = `${context ? `[${context}] ` : ""}${prompt}${attachment ? `\nLampiran: ${attachment}` : ""}`.trim();
-    onAsk(composed);
+    onAsk(`${context ? `[${context}] ` : ""}${prompt}${attachment ? `\nLampiran: ${attachment}` : ""}`.trim());
   };
-
   const applySteering = () => {
     if (!steering.trim()) return;
-    const prompt = `${context ? `[${context}] ` : ""}${query.trim()}`.trim();
-    onAsk(prompt, steering.trim());
+    onAsk(`${context ? `[${context}] ` : ""}${query.trim()}`.trim(), steering.trim());
     setSteering("");
-  };
-
-  const addMath = (value: string) => {
-    setQuery((current) => `${current}${current && !current.endsWith(" ") ? " " : ""}${value}`);
-    window.setTimeout(() => inputRef.current?.focus(), 0);
   };
 
   return (
     <section className="mx-auto w-full max-w-6xl pb-16">
       <div className="mx-auto max-w-3xl text-center">
-        <p className="text-xs font-semibold uppercase text-primary-ink">Infinity Canvas</p>
-        <h2 className="mt-3 font-display text-3xl font-semibold leading-tight sm:text-4xl lg:text-5xl">Riset lebih dalam. Berpikir lebih jernih.</h2>
-        <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">Satu ruang kerja untuk menelusuri literatur, memahami dokumen, menulis, dan menganalisis data.</p>
+        <p className="text-[11px] font-semibold uppercase text-primary-ink">Infinity Canvas</p>
+        <h2 className="mt-3 font-display text-4xl font-semibold leading-tight sm:text-5xl">Apa yang ingin Anda teliti?</h2>
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Mulai dengan pertanyaan, makalah, atau konsep. Infinity membantu menelusuri bukti dan menyusun jawabannya.</p>
       </div>
 
-      <div className="mx-auto mt-8 max-w-4xl">
-        <div className="mb-3 flex justify-center">
-          <div className="inline-flex rounded-full border border-border bg-card p-1 shadow-sm" aria-label="Mode Infinity">
+      <div className="mx-auto mt-7 grid max-w-5xl gap-3 md:grid-cols-[11rem_minmax(0,1fr)_11rem] md:items-center">
+        <QuickAction feature={quickActions[0]} onClick={() => activate(quickActions[0].label)} className="hidden md:flex" />
+        <QuickAction feature={quickActions[1]} onClick={() => activate(quickActions[1].label)} className="mx-auto" />
+        <QuickAction feature={quickActions[2]} onClick={() => activate(quickActions[2].label)} className="hidden md:flex" />
+      </div>
+
+      <div className="mx-auto mt-3 max-w-3xl rounded-[2rem] border border-border bg-card p-3 shadow-xl sm:p-5">
+        <div className="mb-4 flex items-center justify-center gap-2">
+          <span className="grid size-9 place-items-center rounded-full bg-teal-deep text-teal-deep-foreground"><Sparkles className="size-4" /></span>
+          <h3 className="font-display text-xl font-semibold">Ask Infinity</h3>
+        </div>
+
+        <form className="rounded-2xl border border-input bg-background p-2 shadow-sm focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15" onSubmit={(event) => { event.preventDefault(); submit(); }}>
+          {(context || attachment) && (
+            <div className="mb-1 flex flex-wrap gap-1.5 px-2 pt-1">
+              {context && <ActiveChip label={context} onRemove={() => setContext(null)} />}
+              {attachment && <ActiveChip label={attachment} onRemove={() => setAttachment(null)} icon={FileCheck} />}
+            </div>
+          )}
+          <textarea ref={inputRef} value={query} onChange={(event) => setQuery(event.target.value)} rows={2} placeholder="Tanyakan apa saja pada Infinity, analisis dokumen ilmiah, atau ketik perintah..." className="block min-h-16 w-full resize-none bg-transparent px-2 py-2 text-sm leading-6 outline-none placeholder:text-muted-foreground sm:text-base" aria-label="Tanyakan pada Infinity" />
+          <div className="flex items-center gap-1 border-t border-border pt-2">
+            <div className="relative">
+              <Button type="button" variant="ghost" size="icon" className="size-9 rounded-full" onClick={() => setAttachmentOpen((value) => !value)} aria-label="Tambahkan lampiran" aria-expanded={attachmentOpen}><Plus /></Button>
+              {attachmentOpen && (
+                <div className="absolute left-0 top-11 z-30 w-64 rounded-lg border border-border bg-popover p-2 shadow-xl">
+                  <p className="px-3 py-2 text-[11px] font-semibold uppercase text-muted-foreground">Tambahkan lampiran</p>
+                  <AttachmentAction icon={FileImage} label="Foto / Gambar" detail="OCR dan analisis visual" onClick={() => imageRef.current?.click()} />
+                  <AttachmentAction icon={FileText} label="Dokumen" detail="PDF, DOCX, CSV, PPTX" onClick={() => documentRef.current?.click()} />
+                  <AttachmentAction icon={Video} label="Video" detail="Ekstraksi audio dan subteks" onClick={() => videoRef.current?.click()} />
+                </div>
+              )}
+            </div>
+            <Button type="button" variant="ghost" size="icon" className="size-9 rounded-full" onClick={() => cameraRef.current?.click()} aria-label="Ambil foto"><Camera /></Button>
+            <VoiceInput label="Pencarian suara" className="[&_button]:border-0 [&_button]:bg-transparent" onText={(text) => setQuery((value) => value ? `${value} ${text}` : text)} />
+            <Button type="button" variant="ghost" size="icon" className="ml-auto size-9 rounded-full" onClick={() => inputRef.current?.focus()} aria-label="Fokuskan pencarian"><Search /></Button>
+            {answering ? <Button type="button" size="icon" className="size-9 rounded-full bg-teal-deep text-teal-deep-foreground hover:bg-teal-deep/90" onClick={onStop} aria-label="Hentikan"><CircleStop /></Button> : <Button type="submit" size="icon" className="size-9 rounded-full bg-teal-deep text-teal-deep-foreground hover:bg-teal-deep/90" disabled={!query.trim() && !attachment} aria-label="Kirim ke Infinity"><Send /></Button>}
+          </div>
+        </form>
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="inline-flex rounded-full border border-border bg-background p-1" aria-label="Mode Infinity">
             <Button type="button" variant={mode === "general" ? "default" : "ghost"} size="sm" className="rounded-full" onClick={() => onModeChange("general")}><Sparkles /> General AI</Button>
             <Button type="button" variant={mode === "academic" ? "default" : "ghost"} size="sm" className="rounded-full" onClick={() => onModeChange("academic")}><BookOpen /> Academic Research</Button>
           </div>
-        </div>
-        <form
-          className={cn(
-            "research-pill relative rounded-[1.75rem] border bg-card shadow-lg transition-all duration-300",
-            expanded ? "border-primary/50 shadow-xl" : "border-border",
-          )}
-          onSubmit={(event) => {
-            event.preventDefault();
-            submit();
-          }}
-        >
-          <div className="flex items-end gap-2 p-2.5 sm:p-3">
-            <div className="relative">
-              <Button type="button" variant="ghost" size="icon" className="size-10 rounded-full" onClick={() => setAttachmentOpen((value) => !value)} aria-label="Tambahkan lampiran" aria-expanded={attachmentOpen}>
-                <Plus />
-              </Button>
-              {attachmentOpen && (
-                <div className="absolute left-0 top-12 z-30 w-[min(22rem,calc(100vw-2rem))] rounded-lg border border-border bg-popover p-2 shadow-xl">
-                  <p className="px-3 py-2 text-[11px] font-semibold uppercase text-muted-foreground">Impor berkas</p>
-                  <AttachmentAction icon={Image} label="Foto / Gambar" detail="OCR dan analisis visual" onClick={() => imageRef.current?.click()} />
-                  <AttachmentAction icon={FileText} label="Dokumen" detail="PDF, DOCX, CSV, PPTX" onClick={() => documentRef.current?.click()} />
-                  <AttachmentAction icon={Video} label="Video" detail="Ekstraksi audio dan subteks" onClick={() => videoRef.current?.click()} />
-                  <div className="my-2 border-t border-border" />
-                  <p className="px-3 py-2 text-[11px] font-semibold uppercase text-muted-foreground">Google Workspace</p>
-                  <WorkspaceLink icon={FileText} label="Google Docs" href="https://docs.google.com/document/" />
-                  <WorkspaceLink icon={FileSpreadsheet} label="Google Sheets" href="https://docs.google.com/spreadsheets/" />
-                  <WorkspaceLink icon={Presentation} label="Google Slides" href="https://docs.google.com/presentation/" />
-                  <WorkspaceLink icon={Cloud} label="Google Drive" href="https://drive.google.com/" />
-                </div>
-              )}
-            </div>
-            <Button type="button" variant="ghost" size="icon" className="size-10 shrink-0 rounded-full" onClick={() => cameraRef.current?.click()} aria-label="Ambil foto untuk OCR" title="Ambil foto untuk OCR">
-              <Camera />
-            </Button>
-
-            <div className="min-w-0 flex-1" onClick={focusInput}>
-              {(context || attachment) && (
-                <div className="mb-2 flex flex-wrap gap-1.5 px-1">
-                  {context && <ActiveChip label={context} onRemove={() => setContext(null)} />}
-                  {attachment && <ActiveChip label={attachment} onRemove={() => setAttachment(null)} icon={FolderOpen} />}
-                </div>
-              )}
-              <textarea
-                ref={inputRef}
-                value={query}
-                onFocus={() => setExpanded(true)}
-                onChange={(event) => setQuery(event.target.value)}
-                rows={expanded ? 3 : 1}
-                placeholder="Tanyakan apa saja pada Infinity, analisis dokumen ilmiah, atau ketik perintah..."
-                className="block max-h-40 min-h-10 w-full resize-none bg-transparent px-1 py-2 text-sm leading-6 outline-none placeholder:text-muted-foreground sm:text-base"
-                aria-label="Tanyakan pada Infinity"
-              />
-            </div>
-
-            <VoiceInput label="Pencarian suara" onText={(text) => setQuery((value) => (value ? `${value} ${text}` : text))} />
-            <Button type="button" variant="ghost" size="icon" className="size-10 rounded-full" onClick={focusInput} aria-label="Fokuskan pencarian"><Search /></Button>
-            {answering ? (
-              <Button type="button" size="icon" className="size-10 rounded-full bg-teal-deep text-teal-deep-foreground hover:bg-teal-deep/90" onClick={onStop} aria-label="Hentikan"><CircleStop /></Button>
-            ) : (
-              <Button type="submit" size="icon" className="size-10 rounded-full bg-teal-deep text-teal-deep-foreground hover:bg-teal-deep/90" disabled={!query.trim() && !attachment} aria-label="Kirim ke Infinity"><Send /></Button>
-            )}
-          </div>
-
-          {expanded && (
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5">
-              <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-teal-ink"><Sparkles className="size-3.5" /> {mode === "general" ? "General AI" : "Academic Research"} · semua alat aktif</span>
-              <Button type="button" variant="ghost" size="sm" className="h-8 rounded-full text-xs" onClick={() => setActivityOpen((value) => !value)}><Activity /> Aktivitas Langsung <ChevronDown className={cn("transition-transform", activityOpen && "rotate-180")} /></Button>
-            </div>
-          )}
-        </form>
-
-        <input ref={imageRef} className="hidden" type="file" accept="image/*" onChange={(event) => attach(event.target.files?.[0])} />
-        <input ref={cameraRef} className="hidden" type="file" accept="image/*" capture="environment" onChange={(event) => attach(event.target.files?.[0])} />
-        <input ref={documentRef} className="hidden" type="file" accept=".pdf,.doc,.docx,.csv,.xls,.xlsx,.ppt,.pptx" onChange={(event) => attach(event.target.files?.[0])} />
-        <input ref={videoRef} className="hidden" type="file" accept="video/*,audio/*" onChange={(event) => attach(event.target.files?.[0])} />
-
-        {context === "Equation" && (
-          <div className="rise-in mt-3 rounded-lg border border-border bg-card p-3 shadow-sm">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2"><Calculator className="size-4 text-teal-ink" /><span className="text-sm font-semibold">Virtual Math Keypad</span></div>
-              <span className="text-[11px] text-muted-foreground">Masukkan simbol langsung ke prompt</span>
-            </div>
-            <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8">
-              {mathKeys.map((key) => <Button key={key.label} type="button" variant="outline" className="h-10 rounded-md font-mono text-xs" onClick={() => addMath(key.value)}>{key.label}</Button>)}
-            </div>
-          </div>
-        )}
-
-        {(activityOpen || answering || answer || error) && (
-          <div className="rise-in mt-4 overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <div className="flex items-center gap-2"><span className="grid size-8 place-items-center rounded-full bg-mint text-teal-ink"><Zap className="size-4" /></span><div><p className="text-sm font-semibold">Aktivitas Langsung</p><p className="text-[11px] text-muted-foreground">Lihat proses dan arahkan hasil kapan saja</p></div></div>
-              <Button variant="ghost" size="icon" className="size-8 rounded-full" onClick={() => setActivityOpen(false)} aria-label="Tutup aktivitas"><X /></Button>
-            </div>
-            <div className="grid gap-4 p-4 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-              <div className="space-y-2">
-                {progressSteps.map((label, index) => {
-                  const complete = !answering && Boolean(answer) ? true : index < step;
-                  const active = answering && index === step;
-                  return <div key={label} className={cn("flex items-start gap-2.5 rounded-md px-2 py-2 text-xs", active && "bg-mint/70 text-teal-ink")}><span className={cn("mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border", complete && "border-teal-deep bg-teal-deep text-teal-deep-foreground", active && "border-primary animate-pulse")}>{complete && <Check className="size-2.5" />}</span><span>{label}</span></div>;
-                })}
-              </div>
-              <div>
-                <div className="min-h-32 rounded-md border border-border bg-background p-3">
-                  {error ? <p className="text-sm text-destructive">{error}</p> : answer ? <p className="whitespace-pre-wrap text-sm leading-6">{answer}{answering && <span className="animate-pulse"> ▍</span>}</p> : <p className="text-sm leading-6 text-muted-foreground">Hasil Infinity akan tampil di sini setelah Anda mengirim pertanyaan.</p>}
-                </div>
-                <div className="mt-3 flex gap-2">
-                  <input value={steering} onChange={(event) => setSteering(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") applySteering(); }} placeholder="Fokuskan pada metodologi…" className="min-w-0 flex-1 rounded-full border border-input bg-background px-4 text-sm outline-none focus:ring-2 focus:ring-ring" aria-label="Instruksi revisi langsung" />
-                  <Button type="button" className="rounded-full bg-teal-deep text-teal-deep-foreground hover:bg-teal-deep/90" disabled={!steering.trim() || (!query.trim() && !answer)} onClick={applySteering}><Zap /> Terapkan</Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-12">
-        <div className="mb-6 text-center"><p className="text-xs font-semibold uppercase text-primary-ink">12 modul utama</p><h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Mulai dari alur kerja yang Anda butuhkan</h3></div>
-        <div className="space-y-7">
-          {moduleGroups.map((group) => (
-            <div key={group.category}>
-              <div className="mb-3 flex items-center gap-3"><h4 className="text-sm font-semibold">{group.category}</h4><span className="h-px flex-1 bg-border" /></div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {group.modules.map((module) => {
-                  const Icon = module.icon;
-                  const selected = context === module.chip;
-                  return <Button key={module.label} type="button" variant="outline" className={cn("h-auto min-h-28 items-start justify-start whitespace-normal rounded-lg bg-card p-4 text-left shadow-none transition-all hover:-translate-y-0.5 hover:border-primary/50 hover:bg-card", selected && "border-primary ring-2 ring-primary/15")} onClick={() => activateModule(module)}><span className="grid size-9 shrink-0 place-items-center rounded-full bg-mint text-teal-ink"><Icon className="size-4" /></span><span className="min-w-0"><span className="block text-sm font-semibold">{module.label}</span><span className="mt-1 block text-xs font-normal leading-5 text-muted-foreground">{module.description}</span></span></Button>;
-                })}
-              </div>
-            </div>
-          ))}
+          <Button type="button" variant="ghost" size="sm" className="rounded-full text-xs" onClick={() => setActivityOpen((value) => !value)}><Activity /> Aktivitas Langsung <ChevronDown className={cn("transition-transform", activityOpen && "rotate-180")} /></Button>
         </div>
       </div>
 
-      <div className="mt-14 border-t border-border pt-10">
-        <div className="mb-6">
-          <p className="text-xs font-semibold uppercase text-primary-ink">Peralatan lanjutan</p>
-          <h3 className="mt-2 font-display text-2xl font-semibold sm:text-3xl">Satu pintu untuk seluruh alur kerja</h3>
+      <div className="mx-auto mt-3 max-w-xs"><QuickAction feature={quickActions[3]} onClick={() => activate(quickActions[3].label)} /></div>
+
+      <input ref={imageRef} className="hidden" type="file" accept="image/*" onChange={(event) => attach(event.target.files?.[0])} />
+      <input ref={cameraRef} className="hidden" type="file" accept="image/*" capture="environment" onChange={(event) => attach(event.target.files?.[0])} />
+      <input ref={documentRef} className="hidden" type="file" accept=".pdf,.doc,.docx,.csv,.xls,.xlsx,.ppt,.pptx" onChange={(event) => attach(event.target.files?.[0])} />
+      <input ref={videoRef} className="hidden" type="file" accept="video/*,audio/*" onChange={(event) => attach(event.target.files?.[0])} />
+
+      {context === "Equation" && <EquationCalculator onUse={(expression) => { setQuery(expression); inputRef.current?.focus(); }} />}
+
+      {(activityOpen || answering || answer || error) && (
+        <div className="rise-in mx-auto mt-5 max-w-4xl overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+          <div className="flex items-center justify-between border-b border-border px-4 py-3"><div className="flex items-center gap-2"><span className="grid size-8 place-items-center rounded-full bg-mint text-teal-ink"><Zap /></span><div><p className="text-sm font-semibold">Aktivitas Langsung</p><p className="text-[11px] text-muted-foreground">Arahkan hasil kapan saja</p></div></div><Button variant="ghost" size="icon" className="size-8 rounded-full" onClick={() => setActivityOpen(false)} aria-label="Tutup aktivitas"><X /></Button></div>
+          <div className="grid gap-4 p-4 md:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+            <div className="space-y-2">{progressSteps.map((label, index) => { const complete = !answering && Boolean(answer) ? true : index < step; const active = answering && index === step; return <div key={label} className={cn("flex items-start gap-2.5 rounded-md px-2 py-2 text-xs", active && "bg-mint text-teal-ink")}><span className={cn("mt-0.5 grid size-4 shrink-0 place-items-center rounded-full border", complete && "border-teal-deep bg-teal-deep text-teal-deep-foreground", active && "border-primary animate-pulse")}>{complete && <Check />}</span><span>{label}</span></div>; })}</div>
+            <div><div className="min-h-32 rounded-md border border-border bg-background p-3">{error ? <p className="text-sm text-destructive">{error}</p> : answer ? <p className="whitespace-pre-wrap text-sm leading-6">{answer}{answering && <span className="animate-pulse"> ▍</span>}</p> : <p className="text-sm leading-6 text-muted-foreground">Hasil Infinity akan tampil di sini.</p>}</div><div className="mt-3 flex gap-2"><input value={steering} onChange={(event) => setSteering(event.target.value)} onKeyDown={(event) => event.key === "Enter" && applySteering()} placeholder="Fokuskan pada metodologi…" className="min-w-0 flex-1 rounded-full border border-input bg-background px-4 text-sm outline-none focus:ring-2 focus:ring-ring" aria-label="Instruksi revisi langsung" /><Button type="button" className="rounded-full bg-teal-deep text-teal-deep-foreground hover:bg-teal-deep/90" disabled={!steering.trim()} onClick={applySteering}><Zap /> Terapkan</Button></div></div>
+          </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {advancedGroups.map((group) => {
-            const GroupIcon = group.icon;
-            return (
-              <section key={group.category} className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-                <div className="border-b border-border bg-mint/60 p-4">
-                  <span className="mb-3 grid size-9 place-items-center rounded-full bg-teal-deep text-teal-deep-foreground"><GroupIcon className="size-4" /></span>
-                  <h4 className="text-sm font-semibold">{group.category}</h4>
-                  <p className="mt-1 text-xs leading-5 text-muted-foreground">{group.description}</p>
-                </div>
-                <div className="p-2">
-                  {group.items.map((item) => (
-                    <Button key={item} type="button" variant="ghost" className={cn("h-9 w-full justify-start rounded-md px-3 text-left text-xs", context === item && "bg-mint text-teal-ink")} onClick={() => activateModule({ label: item, chip: item, description: "", icon: GroupIcon })}>
-                      <Plus className="size-3.5" />
-                      <span className="truncate">{item}</span>
-                    </Button>
-                  ))}
-                </div>
-              </section>
-            );
-          })}
-        </div>
+      )}
+
+      <div className="mt-12 text-center"><p className="text-[11px] font-semibold uppercase text-primary-ink">Semua alat, satu ruang kerja</p><h3 className="mt-2 font-display text-3xl font-semibold sm:text-4xl">Bangun alur riset Anda</h3><p className="mt-2 text-sm text-muted-foreground">Pilih alat untuk menjadikannya konteks aktif di Ask Infinity.</p></div>
+      <div className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {featureGroups.map((group) => (
+          <section key={group.category} className="rounded-lg border border-border bg-card p-3 shadow-sm">
+            <div className="px-2 pb-3"><p className="text-[11px] font-semibold text-primary-ink">{group.category}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{group.description}</p></div>
+            <div className="space-y-1">{group.features.map((feature) => <FeatureItem key={feature.label} feature={feature} selected={context === feature.label} onClick={() => activate(feature.label)} />)}</div>
+          </section>
+        ))}
       </div>
     </section>
   );
 }
 
-function AttachmentAction({ icon: Icon, label, detail, onClick }: { icon: typeof Image; label: string; detail: string; onClick: () => void }) {
-  return <Button type="button" variant="ghost" className="h-auto w-full justify-start gap-3 rounded-md px-3 py-2 text-left" onClick={onClick}><Icon className="size-4 text-teal-ink" /><span><span className="block text-xs font-semibold">{label}</span><span className="block text-[10px] font-normal text-muted-foreground">{detail}</span></span></Button>;
+function QuickAction({ feature, onClick, className }: { feature: Feature; onClick: () => void; className?: string }) {
+  const Icon = feature.icon;
+  return <Button type="button" variant="outline" className={cn("h-auto min-h-14 w-full justify-start rounded-full bg-card px-3 py-2 shadow-sm", className)} onClick={onClick}><span className="grid size-9 shrink-0 place-items-center rounded-full bg-teal-soft text-teal-ink"><Icon /></span><span className="min-w-0 text-left"><span className="block truncate text-xs font-semibold">{feature.label}</span><span className="block truncate text-[10px] font-normal text-muted-foreground">{feature.description}</span></span></Button>;
 }
 
-function WorkspaceLink({ icon: Icon, label, href }: { icon: typeof FileText; label: string; href: string }) {
-  return <Button asChild variant="ghost" className="h-9 w-full justify-start gap-3 rounded-md px-3 text-xs"><a href={href} target="_blank" rel="noreferrer"><Icon className="size-4 text-teal-ink" />{label}</a></Button>;
+function FeatureItem({ feature, selected, onClick }: { feature: Feature; selected: boolean; onClick: () => void }) {
+  const Icon = feature.icon;
+  return <Button type="button" variant="ghost" className={cn("h-auto min-h-14 w-full justify-start gap-2.5 whitespace-normal rounded-lg p-2 text-left transition-all hover:bg-mint/60", selected && "bg-mint text-teal-ink ring-1 ring-primary/20")} onClick={onClick}><span className="grid size-9 shrink-0 place-items-center rounded-full bg-teal-soft text-teal-ink"><Icon /></span><span className="min-w-0"><span className="block text-xs font-semibold">{feature.label}</span><span className="mt-0.5 block text-[10px] font-normal leading-4 text-muted-foreground">{feature.description}</span></span></Button>;
 }
 
-function ActiveChip({ label, onRemove, icon: Icon = Sparkles }: { label: string; onRemove: () => void; icon?: typeof Sparkles }) {
-  return <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-mint py-0.5 pl-2.5 pr-0.5 text-xs font-semibold text-teal-ink"><Icon className="size-3" /><span className="truncate">{label}</span><Button type="button" variant="ghost" size="icon" onClick={(event) => { event.stopPropagation(); onRemove(); }} className="size-6 rounded-full" aria-label={`Hapus ${label}`}><X className="size-3" /></Button></span>;
+function AttachmentAction({ icon: Icon, label, detail, onClick }: { icon: LucideIcon; label: string; detail: string; onClick: () => void }) {
+  return <Button type="button" variant="ghost" className="h-auto w-full justify-start gap-3 rounded-md px-3 py-2 text-left" onClick={onClick}><span className="grid size-9 shrink-0 place-items-center rounded-full bg-teal-soft text-teal-ink"><Icon /></span><span><span className="block text-xs font-semibold">{label}</span><span className="block text-[10px] font-normal text-muted-foreground">{detail}</span></span></Button>;
+}
+
+function ActiveChip({ label, onRemove, icon: Icon = Sparkles }: { label: string; onRemove: () => void; icon?: LucideIcon }) {
+  return <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-mint py-0.5 pl-2.5 pr-0.5 text-xs font-semibold text-teal-ink"><Icon className="size-3" /><span className="truncate">{label}</span><Button type="button" variant="ghost" size="icon" onClick={(event) => { event.stopPropagation(); onRemove(); }} className="size-6 rounded-full" aria-label={`Hapus ${label}`}><X /></Button></span>;
 }
